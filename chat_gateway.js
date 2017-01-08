@@ -55,6 +55,7 @@ wss.on('connection', function(ws) {
 		    	//generate time , timeout 5 minutes
 		    } 
 		    catch (ex) {
+		          
 		          callback(ex)
 		    }
 			/*{   
