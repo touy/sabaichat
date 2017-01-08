@@ -25,10 +25,10 @@ wss.on('connection', function(ws) {
 		
 		ws.on('disconnect', function(connection) {
 		
-		if(!ws.users) return;
-		
-		connections.splice(connections.indexOf(ws),1);
-		clients.splice(clients.indexOf(ws.user), 1);	
+			if(!ws.users) return;
+			
+			connections.splice(connections.indexOf(ws),1);
+			clients.splice(clients.indexOf(ws.user), 1);	
 		
 		}
 		
@@ -53,12 +53,14 @@ wss.on('connection', function(ws) {
 		    	//choose method: email, sms, facebook
 		    	//generate and send confirmcode
 		    	//generate time , timeout 5 minutes
-		    } catch (ex) {
+		    } 
+		    catch (ex) {
 		          callback(ex)
 		    }
 			/*{   
 				"register":{
 					"registercode":"",
+					"method":"",
 					"email":"",
 					"phone":"",
 					"confirmcode":"",
