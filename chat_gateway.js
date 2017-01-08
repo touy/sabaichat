@@ -3,7 +3,7 @@ process.title = 'SabaiChatAPP';
 // // latest 100 messages
 // var history = [ ];
 // list of currently connected clients (users)
-var clients = [ ];
+var clients = [];
 // connections
 var connections=[];
 
@@ -43,19 +43,58 @@ wss.on('connection', function(ws) {
 			// generate a register code as a alias code
 			ws.emit('new register code',{clientid,"new registercode"});
 		});
+		ws.on('submit confirm code',function(data){
+			var confirmcode=data;
+			if(confirmcode==ws.confirm)
+			{
+				//check exist user
+				if(!checkExistUser(ws.user))
+				//add a new user and login	
+				{
+					if(addUser(ws.user))
+					{
+						var token="";
+						ws.emit('new user result',{msg:"OK",login:token});
+					}
+					else
+					{
+						ws.emit('new user result',{msg:"bad username",login:""});
+					}
+				}
+				else 
+				{
+					ws.emit('new user result',{msg:"exist username",login:""});
+				}
+				
+			}
+		});
 		ws.on('new user',function(data,callback){
 			try {
-		    	var registeruser=JSON.parse(str);
+		    	var registeruser=JSON.parse(data);
 		    	//var user = JSON.parse(data);
 		    	var user=registeruser.user;
-		    	var registeruser.register;
+		    	var register=registeruser.register;
 		    	//check registercode
-		    	//choose method: email, sms, facebook
+		    	ws.clientcode=checkclientcode();
 		    	//generate and send confirmcode
-		    	//generate time , timeout 5 minutes
+		    	var confirm=generateconfirmcode(ws.clientcode);
+		    	ws.confirm=confirm;
+		    	//choose method: email, sms, facebook
+		    	var method=0;
+		    	switch(register.method)
+		    	{
+		    		case "email":
+		    		sendconfirmcodeviaemail();
+		    		break;
+		    		case "SMS":
+		    		sendconfirmcodeviasms();
+		    		break;
+		    		case "facebook":
+		    		sendconfirmcodeviafacebookbot();
+		    		break;
+		    	}
 		    } 
 		    catch (ex) {
-		          
 		          callback(ex)
 		    }
 			/*{   
@@ -105,10 +144,7 @@ wss.on('connection', function(ws) {
 				    "syncto": ""
 				}
 			*/
-			//check exist user
-			//add a new user and login	
-
-			ws.emit('new user result',{msg:data});
+			
 			//updateUsers();
 		});
 		ws.on('user login',function(data){
@@ -116,8 +152,15 @@ wss.on('connection', function(ws) {
 			clients.push(ws.user);
 			ws.emit('login result',{msg:data});
 		});
-		function updateUsers(){
-			ws.emit("update users",user)
+		function checkExistUser()
+		{
+			//user
+			return false;
+		}
+		function addUser(){
+			//ws.emit("update users",user)
+			//user
+			return true;
 		}
 
 		//Group
