@@ -40,8 +40,10 @@ wss.on('connection', function(ws) {
 		//Users
 		ws.on('get register code',function (clientid){
 			//get client id ( hardware id from OS)
+			ws.clientcode=clientid;
 			// generate a register code as a alias code
-			ws.emit('new register code',{clientid,"new registercode"});
+			ws.registercode=generateregistercode(clientid);
+			ws.emit('new register code',{clientid:"new registercode"});
 		});
 		ws.on('submit confirm code',function(data){
 			var confirmcode=data;
@@ -75,7 +77,11 @@ wss.on('connection', function(ws) {
 		    	var user=registeruser.user;
 		    	var register=registeruser.register;
 		    	//check registercode
-		    	ws.clientcode=checkclientcode();
+		    	if(!checkclientcode(register.registercode))
+		    	{
+		    		ws.emit('new user result',{msg:"bad registercode",login:""});
+		    		return;
+		    	}
 		    	//generate and send confirmcode
 		    	var confirm=generateconfirmcode(ws.clientcode);
 		    	ws.confirm=confirm;
