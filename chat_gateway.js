@@ -1,4 +1,4 @@
-process.title = 'NOchat';
+process.title = 'SabaiChatAPP';
 
 // // latest 100 messages
 // var history = [ ];
