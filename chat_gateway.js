@@ -18,57 +18,96 @@ function htmlEntities(str) {
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({port: 12345});
 //lets require/import the mongodb native drivers.
-var mongodb = require('mongodb');
+
+//Lets load the mongoose module in our program
+var mongoose = require('mongoose');
+
+//Lets connect to our database using the DB server URL.
+mongoose.connect('mongodb://localhost/my_database_name');
+
+/**
+ * Lets define our Model for User entity. This model represents a collection in the database.
+ * We define the possible schema of User document and data types of each field.
+ * */
+var User = mongoose.model('User', {name: String, roles: Array, age: Number});
+
+/**
+ * Lets Use our Models
+ * */
+
+//Lets create a new user
+var user1 = new User({name: 'modulus admin', age: 42, roles: ['admin', 'moderator', 'user']});
+
+//Some modifications in user object
+user1.name = user1.name.toUpperCase();
+
+//Lets try to print and see it. You will see _id is assigned.
+console.log(user1);
+
+//Lets save it
+user1.save(function (err, userObj) {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log('saved successfully:', userObj);
+  }
+});
+
+
+
+
+
+//var mongodb = require('mongodb');
 
 //We need to work with "MongoClient" interface in order to connect to a mongodb server.
-var MongoClient = mongodb.MongoClient;
+//var MongoClient = mongodb.MongoClient;
 
 // Connection URL. This is where your mongodb server is running.
-var url = 'mongodb://localhost:27017/my_database_name';
+//var url = 'mongodb://localhost:27017/my_database_name';
 
 
 // Use connect method to connect to the Server
-MongoClient.connect(url, function (err, db) {
-  if (err) {
-    console.log('Unable to connect to the mongoDB server. Error:', err);
-  } else {
-    //HURRAY!! We are connected. :)
-    console.log('Connection established to', url);
-// Get the documents collection
-    var collection = db.collection('users');
+// MongoClient.connect(url, function (err, db) {
+//   if (err) {
+//     console.log('Unable to connect to the mongoDB server. Error:', err);
+//   } else {
+//     //HURRAY!! We are connected. :)
+//     console.log('Connection established to', url);
+// // Get the documents collection
+//     var collection = db.collection('users');
 
-    //Create some users
-    var user1 = {name: 'modulus admin', age: 42, roles: ['admin', 'moderator', 'user']};
-    var user2 = {name: 'modulus user', age: 22, roles: ['user']};
-    var user3 = {name: 'modulus super admin', age: 92, roles: ['super-admin', 'admin', 'moderator', 'user']};
+//     //Create some users
+//     var user1 = {name: 'modulus admin', age: 42, roles: ['admin', 'moderator', 'user']};
+//     var user2 = {name: 'modulus user', age: 22, roles: ['user']};
+//     var user3 = {name: 'modulus super admin', age: 92, roles: ['super-admin', 'admin', 'moderator', 'user']};
 
-    // Insert some users
-    collection.insert([user1, user2, user3], function (err, result) {
-      if (err) {
-        console.log(err);
-      } else {
-        console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length, result);
-      }
-      //Close connection
-      db.close();
-    });
+//     // Insert some users
+//     collection.insert([user1, user2, user3], function (err, result) {
+//       if (err) {
+//         console.log(err);
+//       } else {
+//         console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length, result);
+//       }
+//       //Close connection
+//       db.close();
+//     });
 
-    // Insert some users
-collection.update({name: 'modulus user'}, {$set: {enabled: false}}, function (err, numUpdated) {
-  if (err) {
-    console.log(err);
-  } else if (numUpdated) {
-    console.log('Updated Successfully %d document(s).', numUpdated);
-  } else {
-    console.log('No document found with defined "find" criteria!');
-  }
-  //Close connection
-  db.close();
-});
+//     // Insert some users
+// collection.update({name: 'modulus user'}, {$set: {enabled: false}}, function (err, numUpdated) {
+//   if (err) {
+//     console.log(err);
+//   } else if (numUpdated) {
+//     console.log('Updated Successfully %d document(s).', numUpdated);
+//   } else {
+//     console.log('No document found with defined "find" criteria!');
+//   }
+//   //Close connection
+//   db.close();
+// });
 
-    
-  }
-});
+
+//   }
+// });
 
 
 wss.on('connection', function(ws) {
