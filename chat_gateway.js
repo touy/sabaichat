@@ -34,19 +34,30 @@ wss.on('connection', function(ws) {
 		
 		//message
 		ws.on('send message',function(data){
-			ws.emit('new message',{msg:data});
+			
+			var message=JSON.parse(data); 
+			//show when server get your message
+			//
+			ws.emit('new message',{receivers:message.receivers,msg:message.msg});
+			//show when reciever get it
+			
+			sendtoreceivers(message.receivers,message.msg);
 		});
+		function sendtoreceivers(receivers,msg){
 
+		}
 		//Users
-		ws.on('get register code',function (clientid){
+		//1. step one , before register , user must submit UUID from client to the server to generate register code 
+		ws.on('get register code',function (data){
 			//get client id ( hardware id from OS)
-			ws.clientcode=clientid;
+			ws.clientcode=JSON.parse(data);;
 			// generate a register code as a alias code
 			ws.registercode=generateregistercode(clientid);
 			ws.emit('new register code',{clientid:"new registercode"});
 		});
+		//3. step three, user send confirm code from method that user choosed.
 		ws.on('submit confirm code',function(data){
-			var confirmcode=data;
+			var confirmcode=JSON.parse(data);
 			if(confirmcode==ws.confirm)
 			{
 				//check exist user
@@ -70,6 +81,7 @@ wss.on('connection', function(ws) {
 				
 			}
 		});
+		//2. step two, submit registration data and send confirmation code to user's registration method 
 		ws.on('new user',function(data,callback){
 			try {
 		    	var registeruser=JSON.parse(data);
@@ -90,20 +102,22 @@ wss.on('connection', function(ws) {
 		    	switch(register.method)
 		    	{
 		    		case "email":
-		    		sendconfirmcodeviaemail();
+		    		sendconfirmcodeviaemail(confirm);
 		    		break;
 		    		case "SMS":
-		    		sendconfirmcodeviasms();
+		    		sendconfirmcodeviasms(confirm);
 		    		break;
 		    		case "facebook":
-		    		sendconfirmcodeviafacebookbot();
+		    		sendconfirmcodeviafacebookbot(confirm);
 		    		break;
 		    	}
 		    } 
 		    catch (ex) {
 		          callback(ex)
 		    }
-			/*{   
+		});
+
+		/*{   
 				"register":{
 					"registercode":"",
 					"method":"",
@@ -152,18 +166,56 @@ wss.on('connection', function(ws) {
 			*/
 			
 			//updateUsers();
-		});
 		ws.on('user login',function(data){
-			ws.user=data;
+			ws.user=JSON.parse(data);
+			if(checkExistUser(ws.user))
+			{
+				ws.emit('login result',{msg:"unknown username or password"});
+				return;
+			}
 			clients.push(ws.user);
 			ws.emit('login result',{msg:data});
 		});
-		function checkExistUser()
+		ws.on('recover forgot password',function(data){
+			var confirm=JSON.parse(data);
+			var newpassword=confirm.newpassword;
+			recoverforgotpassword(ws.forgotusername,newpassword);
+		});
+		function recoverforgotpassword(username,password)
+		{
+
+		}
+		ws.on('forget password',function (data)){
+			var client=JSON.parse(data);
+			var username=client.username;
+			ws.forgotusername=username;
+			var confirm=generateconfirmcode(client.clientcode);
+		    	ws.confirm=confirm;
+		    	//choose method: email, sms, facebook
+		    	var method=client.method;
+		    	switch(method)
+		    	{
+		    		case "email":
+		    		sendconfirmcodeviaemail(confirm);
+		    		break;
+		    		case "SMS":
+		    		sendconfirmcodeviasms(confirm);
+		    		break;
+		    		case "facebook":
+		    		sendconfirmcodeviafacebookbot(confirm);
+		    		break;
+		    	}
+		}
+		function checkUserLogin(user){
+			//username and password
+			return false;
+		}
+		function checkExistUser(user)
 		{
 			//user
 			return false;
 		}
-		function addUser(){
+		function addUser(user){
 			//ws.emit("update users",user)
 			//user
 			return true;
