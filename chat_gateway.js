@@ -25,7 +25,6 @@ function encrypt_string(_text , _key){
     hash.update(_text)
     var value = hash.digest('hex')
     return value;
-
 }
 function generate_secret_keys(){
 	return (new Date()).valueOf().toString();
@@ -136,7 +135,6 @@ wss.on('connection', function(ws) {
 		}
 		//message
 		ws.on('send message',function(data){
-			
 			var message=JSON.parse(data); 
 			//show when server get your message
 			//
@@ -155,7 +153,7 @@ wss.on('connection', function(ws) {
 			ws.clientcode=JSON.parse(data);;
 			// generate a register code as a alias code
 			ws.registercode=generateregistercode(clientid);
-			ws.emit('new register code',{registercode:"new registercode"});
+			ws.emit('new register code',{registercode:ws.registercode});
 		});
 		//3. step three, user send confirm code from method that user choosed.
 		ws.on('submit confirm code',function(data){
@@ -182,6 +180,11 @@ wss.on('connection', function(ws) {
 				}
 				
 			}
+			else
+			{
+				ws.emit('new user result',{msg:"wrong confirm code",login:""});
+				return;
+			}
 		});
 		//2. step two, submit registration data and send confirmation code to user's registration method 
 		ws.on('new user',function(data,callback){
@@ -191,7 +194,7 @@ wss.on('connection', function(ws) {
 		    	var user=registeruser.user;
 		    	var register=registeruser.register;
 		    	//check registercode
-		    	if(!checkclientcode(register.registercode))
+		    	if(register.registercode!=ws.registercode)
 		    	{
 		    		ws.emit('new user result',{msg:"bad registercode",login:""});
 		    		return;
@@ -218,7 +221,9 @@ wss.on('connection', function(ws) {
 		          callback(ex)
 		    }
 		});
-
+		function sendconfirmcodeviaemail(confirm){}
+		function sendconfirmcodeviasms(confirm){}
+		function sendconfirmcodeviafacebookbot(confirm){}
 		/*{   
 				"register":{
 					"registercode":"",
