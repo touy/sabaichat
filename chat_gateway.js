@@ -14,6 +14,23 @@ function htmlEntities(str) {
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
                       \.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+function encrypt_string(_text , _key){
+	// generate a hash from string
+    var crypto = require('crypto'),
+        text = _text,
+        key = _key
+
+    // create hahs
+    var hash = crypto.createHmac('sha512', _key)
+    hash.update(_text)
+    var value = hash.digest('hex')
+    return value;
+
+}
+function generate_secret_keys(){
+	return (new Date()).valueOf().toString();
+	// generate by current date
+}
 
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({port: 12345});
@@ -111,18 +128,12 @@ user1.save(function (err, userObj) {
 
 
 wss.on('connection', function(ws) {
-		
 		connections.push(ws);
-		
 		ws.on('disconnect', function(connection) {
-		
-			if(!ws.users) return;
-			
+			if(!ws.users) return;			
 			connections.splice(connections.indexOf(ws),1);
-			clients.splice(clients.indexOf(ws.user), 1);	
-		
+			clients.splice(clients.indexOf(ws.user), 1);
 		}
-		
 		//message
 		ws.on('send message',function(data){
 			
@@ -131,11 +142,10 @@ wss.on('connection', function(ws) {
 			//
 			ws.emit('new message',{receivers:message.receivers,msg:message.msg});
 			//show when reciever get it
-			
 			sendtoreceivers(message.receivers,message.msg);
+
 		});
 		function sendtoreceivers(receivers,msg){
-
 
 		}
 		//Users
@@ -145,7 +155,7 @@ wss.on('connection', function(ws) {
 			ws.clientcode=JSON.parse(data);;
 			// generate a register code as a alias code
 			ws.registercode=generateregistercode(clientid);
-			ws.emit('new register code',{clientid:"new registercode"});
+			ws.emit('new register code',{registercode:"new registercode"});
 		});
 		//3. step three, user send confirm code from method that user choosed.
 		ws.on('submit confirm code',function(data){
@@ -256,7 +266,9 @@ wss.on('connection', function(ws) {
 				    "syncto": ""
 				}
 			*/
-			
+			function generateregistercode(clientid){
+				return encrypt_string(clientid,generate_secret_keys());
+			}
 			//updateUsers();
 		ws.on('user login',function(data){
 			ws.user=JSON.parse(data);
