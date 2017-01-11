@@ -11,8 +11,7 @@ var connections=[];
  * Helper function for escaping input strings
  */
 function htmlEntities(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-                      \.replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 function encrypt_string(_text , _key){
 	// generate a hash from string
@@ -26,10 +25,33 @@ function encrypt_string(_text , _key){
     var value = hash.digest('hex')
     return value;
 }
+function generateregistercode(clientuuid){
+				return encrypt_string(clientuuid,generate_secret_keys());
+			}
 function generate_secret_keys(){
 	return (new Date()).valueOf().toString();
 	// generate by current date
 }
+function shakehands(clientuuid){
+	return encrypt_string(clientuuid,generate_secret_keys());// access keys and store to the server and use this key 
+	// to indentify every time access to the server .
+}
+function checkshakehands(clientuuid,clientaccesskeys){
+
+	return true;
+}
+function generatelogintoken(clientuuid,clientaccesskeys)
+{
+	return encrypt_string(clientuuid,generate_secret_keys()+clientaccesskeys);
+}
+function recoverforgotpassword(username,newpassword)
+{
+	return true;
+}
+function sendtoreceivers(receivers,msg){
+
+	}
+
 
 var WebSocketServer = require('ws').Server
   , wss = new WebSocketServer({port: 12345});
@@ -39,14 +61,72 @@ var WebSocketServer = require('ws').Server
 var mongoose = require('mongoose');
 
 //Lets connect to our database using the DB server URL.
-mongoose.connect('mongodb://localhost/my_database_name');
+mongoose.connect('mongodb://nochat:5martH67@ds054288.mlab.com:54288/nochat');
 
 /**
  * Lets define our Model for User entity. This model represents a collection in the database.
  * We define the possible schema of User document and data types of each field.
  * */
-var User = mongoose.model('User', {name: String, roles: Array, age: Number});
+var registerSchema=mongoose.model('Register',{registercode:String,method:Number,email:String,phone:String,confirmcode:String,requesttime:Date});
+var clientSchema;
+var userSchema = mongoose.model('Users', {name: String, roles: Array, age: Number});
+	/*
+	{
+		"client":
+		{   
+				"client":{
+					"clientuuid":"",
+					"clientaccesskeys":"",
+					"logintoken":""
+				},
+				"register":{
+					"registercode":"",
+					"method":"",
+					"email":"",
+					"phone":"",
+					"facebook":"",
+					"confirmcode":"",
+					"requesttime":""					
+				},
 
+				"user":{				    
+				    "username": "",
+				    "password": "",
+				    "phone1": "",
+				    "phone2": "",
+				    "phone3": "",
+				    "email": "",
+				    "address": "",
+				    "created": "",
+				    "lastlogin": "",
+				    "isactive": "",
+				    "logintoken": "",
+				    "profilephoto": "",
+				    "lastsync": "",
+				    "syncto": ""
+				}
+			}
+	}
+			*/
+			//validate user info 
+			/*
+				{				    
+				    "username": "", min/max: 3/20
+				    "password": "", min/max: 6/30
+				    "phone1": "",  2055516321
+				    "phone2": "", 2055516321
+				    "phone3": "", 2055516321
+				    "email": "", touya.ra@gmail.com
+				    "address": "", max : 300
+				    "created": "", datetime
+				    "lastlogin": "", datetime
+				    "isactive": "", datetime
+				    "logintoken": "", xxxxxxxxxxxxxxxxxxxxxxxxxxx
+				    "profilephoto": "", photo binary
+				    "lastsync": "", datetime
+				    "syncto": ""
+				}
+			*/
 /**
  * Lets Use our Models
  * */
@@ -69,61 +149,23 @@ user1.save(function (err, userObj) {
   }
 });
 
-
-
-
-
-//var mongodb = require('mongodb');
-
-//We need to work with "MongoClient" interface in order to connect to a mongodb server.
-//var MongoClient = mongodb.MongoClient;
-
-// Connection URL. This is where your mongodb server is running.
-//var url = 'mongodb://localhost:27017/my_database_name';
-
-
-// Use connect method to connect to the Server
-// MongoClient.connect(url, function (err, db) {
-//   if (err) {
-//     console.log('Unable to connect to the mongoDB server. Error:', err);
-//   } else {
-//     //HURRAY!! We are connected. :)
-//     console.log('Connection established to', url);
-// // Get the documents collection
-//     var collection = db.collection('users');
-
-//     //Create some users
-//     var user1 = {name: 'modulus admin', age: 42, roles: ['admin', 'moderator', 'user']};
-//     var user2 = {name: 'modulus user', age: 22, roles: ['user']};
-//     var user3 = {name: 'modulus super admin', age: 92, roles: ['super-admin', 'admin', 'moderator', 'user']};
-
-//     // Insert some users
-//     collection.insert([user1, user2, user3], function (err, result) {
-//       if (err) {
-//         console.log(err);
-//       } else {
-//         console.log('Inserted %d documents into the "users" collection. The documents inserted with "_id" are:', result.length, result);
-//       }
-//       //Close connection
-//       db.close();
-//     });
-
-//     // Insert some users
-// collection.update({name: 'modulus user'}, {$set: {enabled: false}}, function (err, numUpdated) {
-//   if (err) {
-//     console.log(err);
-//   } else if (numUpdated) {
-//     console.log('Updated Successfully %d document(s).', numUpdated);
-//   } else {
-//     console.log('No document found with defined "find" criteria!');
-//   }
-//   //Close connection
-//   db.close();
-// });
-
-
-//   }
-// });
+function checkUserLogin(user){
+			//username and password
+			return false;
+		}
+function checkExistUser(user)
+{
+	//user
+	return false;
+}
+function addUser(user){
+	//ws.emit("update users",user)
+	//user
+	return true;
+}
+function sendconfirmcodeviaemail(confirm){}
+function sendconfirmcodeviasms(confirm){}
+function sendconfirmcodeviafacebookbot(confirm){}
 
 
 wss.on('connection', function(ws) {
@@ -132,33 +174,44 @@ wss.on('connection', function(ws) {
 			if(!ws.users) return;			
 			connections.splice(connections.indexOf(ws),1);
 			clients.splice(clients.indexOf(ws.user), 1);
-		}
+		});
+		//shake hands
+		ws.on('shake hands',function (clientuuid){
+			ws.clientuuid=clientuuid;
+			ws.clientaccesskeys=shakehands(clientuuid);
+			ws.emit("client access keys",{clientaccesskeys:ws.clientaccesskeys});
+		});
+
+
 		//message
 		ws.on('send message',function(data){
-			var message=JSON.parse(data); 
+			var client=JSON.parse(data); 
 			//show when server get your message
-			//
-			ws.emit('new message',{receivers:message.receivers,msg:message.msg});
+			//check client access keys and login id;
+			if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
+
+			ws.emit('new message',{receivers:client.receivers,msg:client.msg});
 			//show when reciever get it
-			sendtoreceivers(message.receivers,message.msg);
+			sendtoreceivers(client.receivers,client.msg);
 
 		});
-		function sendtoreceivers(receivers,msg){
-
-		}
+	
 		//Users
 		//1. step one , before register , user must submit UUID from client to the server to generate register code 
 		ws.on('get register code',function (data){
 			//get client id ( hardware id from OS)
-			ws.clientcode=JSON.parse(data);;
+			var client =JSON.parse(data);
+			if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
+			ws.clientuuid=client.clientuuid;
 			// generate a register code as a alias code
-			ws.registercode=generateregistercode(clientid);
+			ws.registercode=generateregistercode(client.clientuuid);
 			ws.emit('new register code',{registercode:ws.registercode});
 		});
 		//3. step three, user send confirm code from method that user choosed.
 		ws.on('submit confirm code',function(data){
-			var confirmcode=JSON.parse(data);
-			if(confirmcode==ws.confirm)
+			var client=JSON.parse(data);
+			if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
+			if(client.confirm==ws.confirm)
 			{
 				//check exist user
 				if(!checkExistUser(ws.user))
@@ -166,17 +219,20 @@ wss.on('connection', function(ws) {
 				{
 					if(addUser(ws.user))
 					{
-						var token="";
+						var token=generatelogintoken(client.clientuuid,clientaccesskeys);
 						ws.emit('new user result',{msg:"OK",login:token});
+						return;
 					}
 					else
 					{
 						ws.emit('new user result',{msg:"bad username",login:""});
+						return;
 					}
 				}
 				else 
 				{
 					ws.emit('new user result',{msg:"exist username",login:""});
+					return;
 				}
 				
 			}
@@ -189,18 +245,21 @@ wss.on('connection', function(ws) {
 		//2. step two, submit registration data and send confirmation code to user's registration method 
 		ws.on('new user',function(data,callback){
 			try {
-		    	var registeruser=JSON.parse(data);
+		    	var client=JSON.parse(data);
+		    	if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
 		    	//var user = JSON.parse(data);
-		    	var user=registeruser.user;
-		    	var register=registeruser.register;
+		    	var user=client.user;
+		    	ws.user=user;
+		    	var register=client.register;
+		    	ws.register=register;
 		    	//check registercode
-		    	if(register.registercode!=ws.registercode)
+		    	if(client.registercode!=ws.registercode)
 		    	{
 		    		ws.emit('new user result',{msg:"bad registercode",login:""});
 		    		return;
 		    	}
 		    	//generate and send confirmcode
-		    	var confirm=generateconfirmcode(ws.clientcode);
+		    	var confirm=generateconfirmcode(ws.clientuuid);
 		    	ws.confirm=confirm;
 		    	//choose method: email, sms, facebook
 		    	var method=0;
@@ -215,66 +274,16 @@ wss.on('connection', function(ws) {
 		    		case "facebook":
 		    		sendconfirmcodeviafacebookbot(confirm);
 		    		break;
+		    		//.......
 		    	}
 		    } 
 		    catch (ex) {
 		          callback(ex)
 		    }
 		});
-		function sendconfirmcodeviaemail(confirm){}
-		function sendconfirmcodeviasms(confirm){}
-		function sendconfirmcodeviafacebookbot(confirm){}
-		/*{   
-				"register":{
-					"registercode":"",
-					"method":"",
-					"email":"",
-					"phone":"",
-					"confirmcode":"",
-					"requesttime":""
-				},
-
-				"user":{				    
-				    "username": "",
-				    "password": "",
-				    "phone1": "",
-				    "phone2": "",
-				    "phone3": "",
-				    "email": "",
-				    "address": "",
-				    "created": "",
-				    "lastlogin": "",
-				    "isactive": "",
-				    "logintoken": "",
-				    "profilephoto": "",
-				    "lastsync": "",
-				    "syncto": ""
-				}
-			}
-			*/
-			//validate user info 
-			/*
-				{				    
-				    "username": "", min/max: 3/20
-				    "password": "", min/max: 6/30
-				    "phone1": "",  2055516321
-				    "phone2": "", 2055516321
-				    "phone3": "", 2055516321
-				    "email": "", touya.ra@gmail.com
-				    "address": "", max : 300
-				    "created": "", datetime
-				    "lastlogin": "", datetime
-				    "isactive": "", datetime
-				    "logintoken": "", xxxxxxxxxxxxxxxxxxxxxxxxxxx
-				    "profilephoto": "", photo binary
-				    "lastsync": "", datetime
-				    "syncto": ""
-				}
-			*/
-			function generateregistercode(clientid){
-				return encrypt_string(clientid,generate_secret_keys());
-			}
-			//updateUsers();
+		
+	
+//updateUsers();
 		ws.on('user login',function(data){
 			ws.user=JSON.parse(data);
 			if(checkExistUser(ws.user))
@@ -290,15 +299,12 @@ wss.on('connection', function(ws) {
 			var newpassword=confirm.newpassword;
 			recoverforgotpassword(ws.forgotusername,newpassword);
 		});
-		function recoverforgotpassword(username,newpassword)
-		{
-
-		}
-		ws.on('forget password',function (data)){
+		
+		ws.on('forget password',function (data){
 			var client=JSON.parse(data);
 			var username=client.username;
 			ws.forgotusername=username;
-			var confirm=generateconfirmcode(client.clientcode);
+			var confirm=generateconfirmcode(client.clientuuid);
 		    	ws.confirm=confirm;
 		    	//choose method: email, sms, facebook
 		    	var method=client.method;
@@ -314,32 +320,21 @@ wss.on('connection', function(ws) {
 		    		sendconfirmcodeviafacebookbot(confirm);
 		    		break;
 		    	}
-		}
-		function checkUserLogin(user){
-			//username and password
-			return false;
-		}
-		function checkExistUser(user)
-		{
-			//user
-			return false;
-		}
-		function addUser(user){
-			//ws.emit("update users",user)
-			//user
-			return true;
-		}
+		});
+		
 
 		//Group
 		ws.on('create a group',function(data){
+			if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
 			ws.emit('group crated result',{msg:data});
 		});
 		ws.on('edit group',function(data){
+			if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
 			ws.emit('edit group result',{msg:data});
 		});
 		ws.on('delete group',function(data){
+			if(!checkshakehands(client.clientuuid,client.clientaccesskeys)) ws.emit("bad shakehands","bad shake hands");
 			ws.emit('delete group result',{msg:data});
 		});
 
 	});
-});
