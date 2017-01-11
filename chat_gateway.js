@@ -54,7 +54,7 @@ function sendtoreceivers(receivers,msg){
 
 
 var WebSocketServer = require('ws').Server
-  , wss = new WebSocketServer({port: 12345});
+, wss = new WebSocketServer({port: 12345});
 //lets require/import the mongodb native drivers.
 
 //Lets load the mongoose module in our program
@@ -67,9 +67,51 @@ mongoose.connect('mongodb://nochat:5martH67@ds054288.mlab.com:54288/nochat');
  * Lets define our Model for User entity. This model represents a collection in the database.
  * We define the possible schema of User document and data types of each field.
  * */
-var registerSchema=mongoose.model('Register',{registercode:String,method:Number,email:String,phone:String,confirmcode:String,requesttime:Date});
-var clientSchema;
-var userSchema = mongoose.model('Users', {name: String, roles: Array, age: Number});
+var registerSchema=mongoose.model('registers',{registercode:String,method:Number,email:String,phone:String,confirmcode:String,requesttime:Date});
+var clientSchema=mongoose.model('clientinfo',{clientuuid:String,clientaccesskeys:String,logintoken:String,otherinfo:String,timeout:Date});
+var userSchema = mongoose.model('Users', {username: String, password: String, phone1: String,phone2:String,phone3:String,
+	email:String,address:String,created:Date,lastlogin:Date,isactive:Boolean,logintoken:String,profilephoto:String,lastsync:Date,syncto:String});
+var groupSchema=mongoose.model('groups', {groupname:String,
+    groupowner:String,
+    admin1: String,
+    admin2: String,
+    admin3: String,
+    groupparent: String,
+    groupcreated: Date,
+    groupmembers: String,
+    lastupdate: Date,
+    grouptype: String,
+    lastsync: Date,
+    syncto: String});
+var conversationSchema=mongoose.model('conversation',{conversationtype: String,
+    chatsessionid: String,
+    conversationtime: Date,
+    senttime: Date,
+    receivedtime: Date,
+    sender: String,
+    receiver: String,
+    groupreceiver: String,
+    content: String,
+    gpslat: String,
+    gpslon: String,
+    messagestatus: String,
+    lastsync: Date,
+    syncto: String});
+var chatsessionSchema=mongoose.model('chatsession',{ chatsessioncreated: String,
+    isactive: Boolean,
+    lastactive: Date,
+    timeout: Date,
+    isgroup: Boolean,
+    lastsync: Date,
+    syncto: String});
+var friendsSchema=mongoose.model('friends', {user1: String,
+    user2: String,
+    status: String,
+    createddate: Date,
+    isafollower: Boolean,
+    isfollowing: Boolean,
+    lastsync: String,
+    syncto: String});
 	/*
 	{
 		"client":
@@ -132,22 +174,22 @@ var userSchema = mongoose.model('Users', {name: String, roles: Array, age: Numbe
  * */
 
 //Lets create a new user
-var user1 = new User({name: 'modulus admin', age: 42, roles: ['admin', 'moderator', 'user']});
+// var user1 = new User({name: 'modulus admin', age: 42, roles: ['admin', 'moderator', 'user']});
 
-//Some modifications in user object
-user1.name = user1.name.toUpperCase();
+// //Some modifications in user object
+// user1.name = user1.name.toUpperCase();
 
-//Lets try to print and see it. You will see _id is assigned.
-console.log(user1);
+// //Lets try to print and see it. You will see _id is assigned.
+// console.log(user1);
 
-//Lets save it
-user1.save(function (err, userObj) {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log('saved successfully:', userObj);
-  }
-});
+// //Lets save it
+// user1.save(function (err, userObj) {
+//   if (err) {
+//     console.log(err);
+//   } else {
+//     console.log('saved successfully:', userObj);
+//   }
+// });
 
 function checkUserLogin(user){
 			//username and password
@@ -185,6 +227,8 @@ wss.on('connection', function(ws) {
 
 		//message
 		ws.on('send message',function(data){
+			//JSON
+			//
 			var client=JSON.parse(data); 
 			//show when server get your message
 			//check client access keys and login id;
