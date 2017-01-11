@@ -218,9 +218,11 @@ wss.on('connection', function(ws) {
 			clients.splice(clients.indexOf(ws.user), 1);
 		});
 		//shake hands
+		//JSON: {clientuuid:String,clientaccesskeys:String,logintoken:String,otherinfo:String,timeout:Date}
 		ws.on('shake hands',function (clientuuid){
 			ws.clientuuid=clientuuid;
 			ws.clientaccesskeys=shakehands(clientuuid);
+			var c=new clientSchema()			
 			ws.emit("client access keys",{clientaccesskeys:ws.clientaccesskeys});
 		});
 
@@ -242,6 +244,8 @@ wss.on('connection', function(ws) {
 	
 		//Users
 		//1. step one , before register , user must submit UUID from client to the server to generate register code 
+		//JSON: {registercode:String,method:Number,email:String,phone:String,confirmcode:String,requesttime:Date});
+
 		ws.on('get register code',function (data){
 			//get client id ( hardware id from OS)
 			var client =JSON.parse(data);
